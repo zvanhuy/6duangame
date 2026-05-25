@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Ground
   - Obstacle
-  - Cactus
   layers:
   - Default
   - TransparentFX
@@ -14,7 +13,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Ground
   - 
   - 
   - 

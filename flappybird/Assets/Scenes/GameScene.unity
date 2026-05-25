@@ -853,7 +853,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 857773614}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 32482765}
+        m_TargetAssemblyTypeName: StartMenuController, Assembly-CSharp
+        m_MethodName: StartGame
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &857773614
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -905,6 +917,7 @@ GameObject:
   - component: {fileID: 910120988}
   - component: {fileID: 910120987}
   - component: {fileID: 910120991}
+  - component: {fileID: 910120992}
   m_Layer: 0
   m_Name: Bird
   m_TagString: Untagged
@@ -1024,7 +1037,7 @@ SpriteRenderer:
   m_SortingLayer: 2
   m_SortingOrder: 10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -7563619192291493436, guid: 222602d220d5d424189732d5988da3c5, type: 3}
+  m_Sprite: {fileID: -2868737101629575438, guid: 63af4c8f17b44a64dbde01e8d3ef2daa, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1063,8 +1076,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BirdController
   jumpForce: 6
   scoreText: {fileID: 1428080413}
+  flapAnimTime: 0.2
   gameOverPanel: {fileID: 616417410}
   finalScoreText: {fileID: 585576775}
+--- !u!95 &910120992
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910120986}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 3931ccd9d7198514190e4154549727ab, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &911485333
 GameObject:
   m_ObjectHideFlags: 0
@@ -1659,7 +1695,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1996277232
 RectTransform:
   m_ObjectHideFlags: 0

@@ -55,6 +55,12 @@ public class StartMenuController : MonoBehaviour
         if (pipeSpawner != null)
             pipeSpawner.enabled = true;
 
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayStartSound();
+            SoundManager.Instance.PlayBackgroundMusic();
+        }
+
         if (birdController != null)
             birdController.StartGame();
     }
