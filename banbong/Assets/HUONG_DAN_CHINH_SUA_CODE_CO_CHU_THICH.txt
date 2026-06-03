@@ -1,0 +1,56 @@
+HƯỚNG DẪN NHANH - BẢN SCRIPT ĐÃ THÊM CHÚ THÍCH
+
+Trong các file C# ở Assets/Scripts, tôi đã thêm nhiều dòng chú thích có dạng:
+- SỬA Ở ĐÂY
+- GHI CHÚ CHỈNH SỬA NHANH
+- Tooltip hiển thị trong Inspector
+
+Các vị trí chỉnh thường dùng:
+
+1. Muốn tăng/giảm điểm:
+   Mở Assets/Scripts/QuanLyLuoiBong.cs
+   Tìm: XoaCumBong(cum, 10)
+   Số 10 là điểm mỗi bóng bị nổ.
+   Tìm: XoaCumBong(bongRoi, 5)
+   Số 5 là điểm mỗi bóng rơi tự do.
+
+2. Muốn đổi điều kiện nổ bóng:
+   Mở QuanLyLuoiBong.cs
+   Tìm: cum.Count >= 3
+   Số 3 nghĩa là cần ít nhất 3 bóng cùng màu mới nổ.
+
+3. Muốn tăng/giảm tốc độ bóng:
+   Mở QuanLyTroChoiBanBong.cs hoặc DieuKhienSung.cs
+   Tìm: tocDoBan
+
+4. Muốn đổi kích thước bóng:
+   Mở QuanLyTroChoiBanBong.cs
+   Tìm: banKinhBong
+
+5. Muốn đổi số hàng/cột lưới:
+   Mở QuanLyTroChoiBanBong.cs
+   Tìm: soHang, soCot, soHangBanDau
+
+6. Muốn đổi phím bắn:
+   Mở DieuKhienSung.cs
+   Tìm hàm: CoBamBan()
+
+7. Muốn đổi phím chơi lại:
+   Mở QuanLyTroChoiBanBong.cs
+   Tìm hàm: CoBamChoiLai()
+
+8. Muốn đổi chữ GAME OVER / VICTORY:
+   Mở QuanLyGiaoDien.cs
+   Tìm: HienBangThua(), HienBangThang()
+
+9. Muốn đổi màu bóng:
+   Mở ThuVienHinhAnhBong.cs
+   Tìm: BangMauBong
+
+10. Muốn đổi tên object trong Hierarchy:
+    Mở TrinhTaoCauTrucBanBong.cs
+    Tìm các chuỗi tiếng Việt như "Lưới bóng", "Súng bắn", "Camera Chính".
+
+Lưu ý:
+- Chỉ sửa các dòng được ghi "SỬA Ở ĐÂY" trước.
+- Sau khi sửa code, quay lại Unity chờ compile xong rồi bấm Ctrl + S để lưu Scene.

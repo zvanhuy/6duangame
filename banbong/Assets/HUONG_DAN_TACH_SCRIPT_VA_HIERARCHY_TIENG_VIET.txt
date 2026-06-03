@@ -1,0 +1,117 @@
+HƯỚNG DẪN BẢN ĐÃ TÁCH SCRIPT VÀ ĐỔI HIERARCHY SANG TIẾNG VIỆT
+
+1. CẤU TRÚC HIERARCHY SAU KHI MỞ UNITY
+
+banbong
+├── Camera Chính
+├── Đèn toàn cục 2D
+├── Nền chính
+├── Quản lý trò chơi
+├── Lưới bóng
+│   ├── Bóng trong lưới H01 C01
+│   ├── Bóng trong lưới H01 C02
+│   ├── ...
+│   └── Bóng trong lưới H05 C08
+├── Súng bắn
+│   ├── Trục xoay súng
+│   │   ├── Hình súng
+│   │   ├── Đầu nòng
+│   │   └── Bóng xem trước
+│   ├── Bóng đang bắn
+│   └── Đế súng
+├── Tường
+│   ├── Tường trái
+│   ├── Tường phải
+│   └── Tường trên
+├── EventSystem
+├── Đường ngắm
+├── Hiệu ứng nổ bóng
+├── Mẫu bóng
+├── Canvas
+│   ├── Bảng thua
+│   │   ├── Chữ THUA
+│   │   └── Nút chơi lại
+│   │       └── Chữ nút
+│   ├── Bảng thắng
+│   │   ├── Chữ THẮNG
+│   │   └── Nút chơi lại
+│   │       └── Chữ nút
+│   ├── Khung điểm
+│   │   ├── Chữ điểm
+│   │   └── Giá trị điểm
+│   ├── Khung cấp độ
+│   │   ├── Chữ cấp độ
+│   │   └── Giá trị cấp độ
+│   ├── Khung bóng
+│   │   ├── Chữ bóng
+│   │   └── Giá trị bóng
+│   ├── Khung giới hạn
+│   │   ├── Biểu tượng bóng
+│   │   └── Chữ giới hạn bóng
+│   └── Bộ điều khiển UI
+└── Quản lý bóng bắn
+
+Lưu ý: Các object trên được tạo bằng [ExecuteAlways], nên sẽ hiện trong Hierarchy ngay khi mở Scene, không cần bấm Play.
+
+2. SCRIPT ĐÃ ĐƯỢC TÁCH RA
+
+Assets/Scripts/QuanLyTroChoiBanBong.cs
+- Gắn trên object: Quản lý trò chơi.
+- Nhiệm vụ: điều phối game, khởi tạo game, xử lý thắng/thua, chơi lại.
+- Không còn ôm toàn bộ logic như bản cũ.
+
+Assets/Scripts/TrinhTaoCauTrucBanBong.cs
+- Script tạo cấu trúc Hierarchy tiếng Việt.
+- Tạo Camera, đèn, nền, tường, súng, canvas, bảng thua/thắng, các khung UI.
+
+Assets/Scripts/QuanLyLuoiBong.cs
+- Gắn trên object: Quản lý trò chơi.
+- Nhiệm vụ: tạo lưới bóng, lưu vị trí hàng/cột, gắn bóng vào lưới, tìm cụm cùng màu, xóa bóng.
+
+Assets/Scripts/QuanLyBongBan.cs
+- Gắn trên object: Quản lý bóng bắn.
+- Nhiệm vụ: quản lý Bóng đang bắn và Bóng xem trước.
+
+Assets/Scripts/DieuKhienSung.cs
+- Gắn trên object: Súng bắn.
+- Nhiệm vụ: đọc chuột/cảm ứng/Space bằng Input System mới, cập nhật hướng ngắm, bắn bóng, cho bóng bay.
+
+Assets/Scripts/QuanLyGiaoDien.cs
+- Gắn trên object: Canvas/Bộ điều khiển UI.
+- Nhiệm vụ: cập nhật điểm, cấp độ, số bóng, bảng thua, bảng thắng, nút chơi lại.
+
+Assets/Scripts/Bong.cs
+- Gắn trên từng quả bóng.
+- Nhiệm vụ: lưu Hàng, Cột, Mã màu, Hướng bay.
+
+Assets/Scripts/ThuVienHinhAnhBong.cs
+- Tạo và cập nhật hình ảnh bóng.
+- Nếu có ảnh trong Resources/AnhBong thì dùng ảnh đó, nếu thiếu thì tự tạo sprite tròn.
+
+Assets/Scripts/TienIchBanBong.cs
+- Hàm tiện ích dùng chung: tạo object, thêm component, tạo hình chữ nhật, xóa object.
+
+3. CÁCH CHỈNH SỬA NHANH
+
+Muốn chỉnh số hàng/cột bóng:
+- Chọn Quản lý trò chơi.
+- Sửa So Hang, So Cot, So Hang Ban Dau trong Inspector.
+
+Muốn chỉnh tốc độ bắn:
+- Chọn Quản lý trò chơi.
+- Sửa Toc Do Ban.
+
+Muốn chỉnh tường, nền:
+- Chọn Nền chính hoặc Tường > Tường trái / Tường phải / Tường trên.
+- Sửa SpriteRenderer hoặc Transform.
+
+Muốn chỉnh UI:
+- Mở Canvas.
+- Chỉnh Khung điểm, Khung cấp độ, Khung bóng, Bảng thua, Bảng thắng.
+
+4. NẾU UNITY CHƯA HIỆN OBJECT NGAY
+
+- Mở Scene: Assets/Scenes/BanBong.unity
+- Chọn object Quản lý trò chơi.
+- Bật Hien Tat Ca Object Truoc Khi Play.
+- Bấm Ctrl + S để lưu Scene.

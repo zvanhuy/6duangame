@@ -1,0 +1,17 @@
+ĐÃ CHUYỂN / SẮP XẾP HIERARCHY CHO DỄ CHỈNH SỬA
+
+Trong Scene BanBong, mình đã thêm các nhóm object:
+
+01_Nền trang trí
+02_Lưới bóng
+03_Súng và bóng bắn
+04_Giao diện UI
+
+File script QuanLyTroChoiBanBong.cs đã được sửa để khi chạy game:
+- Nền trời, tường trái, tường phải, sàn bắn sẽ nằm trong 01_Nền trang trí.
+- Các bóng trong lưới sẽ nằm trong 02_Lưới bóng.
+- Súng, đường ngắm, bóng đang bắn, bóng tiếp theo sẽ nằm trong 03_Súng và bóng bắn.
+- Canvas và các chữ UI sẽ nằm trong 04_Giao diện UI.
+
+Lưu ý:
+Game này tạo nhiều object bằng code khi bấm Play, nên các object con sẽ hiện rõ trong Hierarchy sau khi chạy game.

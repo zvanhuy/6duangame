@@ -1,740 +1,304 @@
-
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
+
+// ============================================================
+// GHI CHÚ CHỈNH SỬA NHANH
+// Đây là file điều phối chính của game.
+// Các dòng dễ sửa nhất nằm trong nhóm [Header] bên dưới.
+// - Muốn tăng/giảm số hàng, số cột, số hàng ban đầu: sửa soHang, soCot, soHangBanDau.
+// - Muốn bóng to/nhỏ: sửa banKinhBong.
+// - Muốn súng bắn nhanh/chậm: sửa tocDoBan.
+// - Muốn đổi vị trí súng: sửa viTriSung.
+// - Muốn đổi chữ hướng dẫn: tìm "Kéo để ngắm - thả/click/Space để bắn".
+// - Muốn đổi phím chơi lại: tìm hàm CoBamChoiLai().
+// - Muốn đổi cách cộng điểm: mở QuanLyLuoiBong.cs, tìm "diemCong".
+// ============================================================
+/// <summary>
+/// Script trung tâm của game bắn bóng.
+/// Script này KHÔNG còn ôm toàn bộ code như bản cũ.
+/// Nó chỉ làm nhiệm vụ điều phối các script con:
+/// - TrinhTaoCauTrucBanBong: tạo Hierarchy tiếng Việt.
+/// - QuanLyLuoiBong: xử lý lưới bóng.
+/// - QuanLyBongBan: tạo bóng đang bắn và bóng xem trước.
+/// - DieuKhienSung: điều khiển ngắm và bắn.
+/// - QuanLyGiaoDien: cập nhật UI.
+/// </summary>
+[ExecuteAlways]
 public class QuanLyTroChoiBanBong : MonoBehaviour
 {
     [Header("Cấu hình lưới bóng")]
+    // SỬA Ở ĐÂY:
+    // soHang: tổng số hàng tối đa của lưới. Tăng số này => game có nhiều khoảng trống hơn trước khi thua.
+    // soCot: số cột bóng mỗi hàng. Tăng số này => lưới rộng hơn, cần chỉnh lại camera/tường nếu quá lớn.
+    // soHangBanDau: số hàng bóng xuất hiện lúc bắt đầu. Tăng => game khó hơn, giảm => game dễ hơn.
+    // banKinhBong: kích thước bóng. Tăng => bóng to hơn và khoảng cách giữa các bóng cũng lớn hơn.
+    [Tooltip("Tổng số hàng tối đa của lưới bóng. Tăng để có nhiều chỗ bắn hơn.")]
     [SerializeField] private int soHang = 12;
+    [Tooltip("Số cột của mỗi hàng bóng. Tăng quá nhiều cần chỉnh lại giới hạn tường/camera.")]
     [SerializeField] private int soCot = 8;
+    [Tooltip("Số hàng bóng có sẵn khi bắt đầu game. Tăng = khó hơn, giảm = dễ hơn.")]
     [SerializeField] private int soHangBanDau = 5;
+    [Tooltip("Kích thước bóng. Tăng = bóng to hơn, giảm = bóng nhỏ hơn.")]
     [SerializeField] private float banKinhBong = 0.32f;
-    [SerializeField] private float tocDoBan = 8.5f;
 
-    [Header("Khu vực chơi")]
+    [Header("Cấu hình khu vực chơi")]
+    // SỬA Ở ĐÂY:
+    // gioiHanTrai/gioiHanPhai: giới hạn 2 bên. Bóng chạm vào đây sẽ bật lại.
+    // viTriDinhLuoi: vị trí hàng bóng đầu tiên ở phía trên.
+    // viTriSung: vị trí súng ở dưới màn hình. Y càng âm thì súng càng thấp.
+    [Tooltip("Giới hạn tường trái. Bóng chạm vào sẽ bật lại.")]
     [SerializeField] private float gioiHanTrai = -2.65f;
+    [Tooltip("Giới hạn tường phải. Bóng chạm vào sẽ bật lại.")]
     [SerializeField] private float gioiHanPhai = 2.65f;
+    [Tooltip("Độ cao của hàng bóng đầu tiên.")]
     [SerializeField] private float viTriDinhLuoi = 4.05f;
+    [Tooltip("Vị trí súng bắn bóng. X đổi ngang, Y đổi cao/thấp.")]
     [SerializeField] private Vector2 viTriSung = new Vector2(0f, -4.15f);
 
-    private const int KhongCoBong = -1;
-    private readonly Color[] bangMauBong =
-    {
-        new Color(1.00f, 0.20f, 0.18f),
-        new Color(0.18f, 0.54f, 1.00f),
-        new Color(0.15f, 0.82f, 0.34f),
-        new Color(1.00f, 0.88f, 0.12f),
-        new Color(0.75f, 0.27f, 1.00f)
-    };
+    [Header("Cấu hình bắn")]
+    // SỬA Ở ĐÂY:
+    // Muốn bóng bay nhanh hơn thì tăng tocDoBan, muốn chậm hơn thì giảm.
+    [Tooltip("Tốc độ bóng sau khi bắn. Tăng = bóng bay nhanh hơn.")]
+    [SerializeField] private float tocDoBan = 8.5f;
 
-    private Bong[,] luoiBong;
+    [Header("Hiển thị trước khi Play")]
+    // SỬA Ở ĐÂY:
+    // hienTatCaObjectTruocKhiPlay = true: object hiện sẵn trong Hierarchy khi chưa bấm Play.
+    // Nếu máy bị lag khi chỉnh Inspector, có thể tắt tuDongCapNhatKhiSuaInspector.
+    [Tooltip("Bật để tạo sẵn toàn bộ object trong Hierarchy trước khi bấm Play.")]
+    [SerializeField] private bool hienTatCaObjectTruocKhiPlay = true;
+    [Tooltip("Bật để Unity tự cập nhật lại Hierarchy khi sửa thông số trong Inspector.")]
+    [SerializeField] private bool tuDongCapNhatKhiSuaInspector = true;
+
+    private CauTrucCanhBanBong cauTruc;
+    private QuanLyLuoiBong quanLyLuoiBong;
+    private QuanLyBongBan quanLyBongBan;
+    private DieuKhienSung dieuKhienSung;
+    private QuanLyGiaoDien quanLyGiaoDien;
     private Sprite[] spriteBong;
-    private Camera cameraChinh;
-    private LineRenderer duongNgam;
-    private LineRenderer thanSung;
-    private Bong bongDangBan;
-    private Bong bongTiepTheo;
-    private Vector2 huongBan = Vector2.up;
-    private bool dangBay;
-    private bool daKetThuc;
+
     private int diem;
+    private int capDo = 1;
+    private int soBongDaBan;
+    private bool daKetThuc;
 
-    private Canvas canvasGiaoDien;
-    private Text chuDiem;
-    private Text chuHuongDan;
-    private Text chuBongTiepTheo;
-    private GameObject bangKetThuc;
-    private Text chuKetThuc;
+#if UNITY_EDITOR
+    private bool dangHenKhoiTaoEditor;
+#endif
 
-    private Material vatLieuLine;
+    private void OnEnable()
+    {
+#if UNITY_EDITOR
+        if (!Application.isPlaying && hienTatCaObjectTruocKhiPlay)
+            HenKhoiTaoTrongEditor();
+#endif
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (!Application.isPlaying && hienTatCaObjectTruocKhiPlay && tuDongCapNhatKhiSuaInspector)
+            HenKhoiTaoTrongEditor();
+    }
+
+    private void HenKhoiTaoTrongEditor()
+    {
+        if (dangHenKhoiTaoEditor)
+            return;
+
+        dangHenKhoiTaoEditor = true;
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            dangHenKhoiTaoEditor = false;
+            if (this == null || Application.isPlaying || !hienTatCaObjectTruocKhiPlay)
+                return;
+
+            Random.InitState(27052006);
+            TaoHoacCapNhatCauTrucScene(true);
+            CapNhatUI();
+
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(gameObject.scene);
+        };
+    }
+#endif
 
     private void Start()
     {
+        if (!Application.isPlaying)
+            return;
+
         KhoiTaoTroChoi();
     }
 
     private void Update()
     {
+        if (!Application.isPlaying)
+            return;
+
         if (daKetThuc)
         {
             if (CoBamChoiLai())
-            {
                 ChoiLai();
-            }
             return;
         }
 
-        CapNhatDieuKhien();
-        CapNhatBongDangBay();
+        if (dieuKhienSung != null)
+            dieuKhienSung.CapNhatDieuKhien();
     }
 
     private void KhoiTaoTroChoi()
     {
+        // Dòng này làm màu bóng mỗi lần chơi có thể khác nhau.
+        // Muốn lưới bóng luôn giống nhau để test: đổi thành Random.InitState(27052006);
         Random.InitState(System.DateTime.Now.Millisecond);
 
-        cameraChinh = Camera.main;
-        if (cameraChinh == null)
-        {
-            GameObject doiTuongCamera = new GameObject("Camera Chính");
-            cameraChinh = doiTuongCamera.AddComponent<Camera>();
-            doiTuongCamera.AddComponent<AudioListener>();
-            doiTuongCamera.tag = "MainCamera";
-        }
+        // SỬA Ở ĐÂY nếu muốn game bắt đầu với điểm/cấp độ khác.
+        // Ví dụ muốn bắt đầu từ 100 điểm thì đổi diem = 100;
+        diem = 0;
+        capDo = 1;
+        soBongDaBan = 0;
+        daKetThuc = false;
 
-        cameraChinh.orthographic = true;
-        cameraChinh.orthographicSize = 5.15f;
-        cameraChinh.backgroundColor = new Color(0.55f, 0.78f, 0.96f);
-        cameraChinh.transform.position = new Vector3(0f, 0f, -10f);
+        TaoHoacCapNhatCauTrucScene(true);
+        CapNhatUI();
 
-        luoiBong = new Bong[soHang, soCot];
-        spriteBong = TaoTatCaSpriteBong();
-        vatLieuLine = new Material(Shader.Find("Sprites/Default"));
-
-        TaoNenTrangTri();
-        TaoSungBan();
-        TaoGiaoDien();
-        TaoLuoiBongBanDau();
-        TaoBongMoiDeBan();
-        CapNhatDiem();
+        if (quanLyGiaoDien != null)
+            quanLyGiaoDien.AnTatCaBangKetThuc();
     }
 
-    private void TaoNenTrangTri()
+    private void TaoHoacCapNhatCauTrucScene(bool dungLaiObjectCoSan)
     {
-        TaoHinhChuNhat("Nền trời", new Vector3(0f, 0f, 1f), new Vector2(6.2f, 10.5f), new Color(0.55f, 0.80f, 0.98f));
-        TaoHinhChuNhat("Thanh tường trái", new Vector3(gioiHanTrai - 0.1f, 0f, -0.1f), new Vector2(0.12f, 10.2f), new Color(0.95f, 0.86f, 0.35f));
-        TaoHinhChuNhat("Thanh tường phải", new Vector3(gioiHanPhai + 0.1f, 0f, -0.1f), new Vector2(0.12f, 10.2f), new Color(0.95f, 0.86f, 0.35f));
-        TaoHinhChuNhat("Sàn bắn", new Vector3(0f, -4.75f, -0.1f), new Vector2(6.2f, 0.55f), new Color(0.99f, 0.78f, 0.28f));
+        ChuanHoaThongSo();
+        spriteBong = ThuVienHinhAnhBong.TaoTatCaSpriteBong();
+
+        cauTruc = TrinhTaoCauTrucBanBong.TaoCauTruc(this, viTriSung, gioiHanTrai, gioiHanPhai);
+        quanLyLuoiBong = cauTruc.QuanLyLuoiBong;
+        quanLyBongBan = cauTruc.QuanLyBongBan;
+        dieuKhienSung = cauTruc.DieuKhienSung;
+        quanLyGiaoDien = cauTruc.QuanLyGiaoDien;
+
+        quanLyLuoiBong.CaiDat(cauTruc.NhomLuoiBong, spriteBong, soHang, soCot, soHangBanDau, banKinhBong, viTriDinhLuoi);
+        quanLyLuoiBong.TaoHoacNapLuoiBanDau(dungLaiObjectCoSan);
+
+        quanLyBongBan.CaiDat(cauTruc.NhomSungBan, cauTruc.TrucXoaySung, spriteBong, banKinhBong, viTriSung);
+        quanLyBongBan.TaoBongBanDau(dungLaiObjectCoSan);
+
+        dieuKhienSung.CaiDat(cauTruc.CameraChinh, cauTruc.ThanSung, cauTruc.DuongNgam, quanLyBongBan, quanLyLuoiBong, this, tocDoBan, gioiHanTrai, gioiHanPhai, viTriDinhLuoi, banKinhBong, viTriSung);
+        quanLyGiaoDien.CaiDat(this, cauTruc.TxtDiem, cauTruc.TxtCapDo, cauTruc.TxtSoBong, cauTruc.TxtGioiHan, cauTruc.BangThua, cauTruc.BangThang, cauTruc.TxtThua, cauTruc.TxtThang, cauTruc.NutChoiLaiKhiThua, cauTruc.NutChoiLaiKhiThang);
     }
 
-    private GameObject TaoHinhChuNhat(string ten, Vector3 viTri, Vector2 kichThuoc, Color mau)
+    private void ChuanHoaThongSo()
     {
-        GameObject doiTuong = new GameObject(ten);
-        doiTuong.transform.position = viTri;
-        doiTuong.transform.localScale = new Vector3(kichThuoc.x, kichThuoc.y, 1f);
-        SpriteRenderer ve = doiTuong.AddComponent<SpriteRenderer>();
-        ve.sprite = TaoSpriteHinhVuong();
-        ve.color = mau;
-        ve.sortingOrder = -20;
-        return doiTuong;
+        soHang = Mathf.Max(1, soHang);
+        soCot = Mathf.Max(1, soCot);
+        soHangBanDau = Mathf.Clamp(soHangBanDau, 1, soHang);
+        banKinhBong = Mathf.Max(0.08f, banKinhBong);
+        tocDoBan = Mathf.Max(1f, tocDoBan);
     }
 
-    private void TaoSungBan()
+    public void XuLyBongChamLuoi(Vector3 viTriCham)
     {
-        GameObject than = new GameObject("Súng bắn bóng");
-        thanSung = than.AddComponent<LineRenderer>();
-        thanSung.material = vatLieuLine;
-        thanSung.positionCount = 2;
-        thanSung.startWidth = 0.18f;
-        thanSung.endWidth = 0.12f;
-        thanSung.startColor = new Color(1f, 0.55f, 0.08f);
-        thanSung.endColor = new Color(1f, 0.85f, 0.15f);
-        thanSung.sortingOrder = 5;
-
-        GameObject deSung = TaoBongDoHoa("Đế súng", new Vector3(viTriSung.x, viTriSung.y - 0.18f, 0f), new Color(1f, 0.58f, 0.05f), 0.55f);
-        deSung.GetComponent<SpriteRenderer>().sortingOrder = 6;
-
-        GameObject duong = new GameObject("Đường ngắm");
-        duongNgam = duong.AddComponent<LineRenderer>();
-        duongNgam.material = vatLieuLine;
-        duongNgam.positionCount = 2;
-        duongNgam.startWidth = 0.04f;
-        duongNgam.endWidth = 0.04f;
-        duongNgam.startColor = Color.white;
-        duongNgam.endColor = new Color(1f, 1f, 1f, 0.15f);
-        duongNgam.sortingOrder = 4;
-    }
-
-    private void TaoGiaoDien()
-    {
-        GameObject canvasObj = new GameObject("Giao diện người chơi");
-        canvasGiaoDien = canvasObj.AddComponent<Canvas>();
-        canvasGiaoDien.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvasObj.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        canvasObj.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1080, 1920);
-        canvasObj.AddComponent<GraphicRaycaster>();
-
-        chuDiem = TaoChuUI("Chữ điểm", "ĐIỂM: 0", new Vector2(0f, -65f), 54, TextAnchor.MiddleCenter, Color.white);
-        DatNeo(chuDiem.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(480f, 90f));
-
-        chuHuongDan = TaoChuUI("Chữ hướng dẫn", "Kéo để ngắm - thả/click để bắn", new Vector2(0f, 95f), 32, TextAnchor.MiddleCenter, new Color(0.18f, 0.22f, 0.32f));
-        DatNeo(chuHuongDan.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(780f, 70f));
-
-        chuBongTiepTheo = TaoChuUI("Chữ bóng tiếp theo", "BÓNG TIẾP THEO", new Vector2(350f, 180f), 26, TextAnchor.MiddleCenter, new Color(0.18f, 0.22f, 0.32f));
-        DatNeo(chuBongTiepTheo.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(300f, 60f));
-
-        TaoBangKetThuc();
-    }
-
-    private Text TaoChuUI(string ten, string noiDung, Vector2 viTri, int coChu, TextAnchor canLe, Color mau)
-    {
-        GameObject obj = new GameObject(ten);
-        obj.transform.SetParent(canvasGiaoDien.transform, false);
-        Text chu = obj.AddComponent<Text>();
-        chu.text = noiDung;
-        chu.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        chu.fontSize = coChu;
-        chu.alignment = canLe;
-        chu.color = mau;
-        chu.fontStyle = FontStyle.Bold;
-        RectTransform rect = chu.rectTransform;
-        rect.anchoredPosition = viTri;
-        rect.sizeDelta = new Vector2(700f, 90f);
-        return chu;
-    }
-
-    private void DatNeo(RectTransform rect, Vector2 neoMin, Vector2 neoMax, Vector2 diemTua, Vector2 kichThuoc)
-    {
-        rect.anchorMin = neoMin;
-        rect.anchorMax = neoMax;
-        rect.pivot = diemTua;
-        rect.sizeDelta = kichThuoc;
-    }
-
-    private void TaoBangKetThuc()
-    {
-        bangKetThuc = new GameObject("Bảng kết thúc");
-        bangKetThuc.transform.SetParent(canvasGiaoDien.transform, false);
-        Image nen = bangKetThuc.AddComponent<Image>();
-        nen.color = new Color(0f, 0f, 0f, 0.55f);
-        RectTransform rect = bangKetThuc.GetComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
-
-        GameObject hop = new GameObject("Khung thông báo");
-        hop.transform.SetParent(bangKetThuc.transform, false);
-        Image anhHop = hop.AddComponent<Image>();
-        anhHop.color = new Color(1f, 0.86f, 0.35f, 0.96f);
-        RectTransform rectHop = hop.GetComponent<RectTransform>();
-        rectHop.anchorMin = new Vector2(0.5f, 0.5f);
-        rectHop.anchorMax = new Vector2(0.5f, 0.5f);
-        rectHop.pivot = new Vector2(0.5f, 0.5f);
-        rectHop.anchoredPosition = Vector2.zero;
-        rectHop.sizeDelta = new Vector2(760f, 520f);
-
-        GameObject objChu = new GameObject("Chữ kết thúc");
-        objChu.transform.SetParent(hop.transform, false);
-        chuKetThuc = objChu.AddComponent<Text>();
-        chuKetThuc.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        chuKetThuc.fontSize = 54;
-        chuKetThuc.fontStyle = FontStyle.Bold;
-        chuKetThuc.alignment = TextAnchor.MiddleCenter;
-        chuKetThuc.color = new Color(0.28f, 0.12f, 0.02f);
-        RectTransform rectChu = chuKetThuc.rectTransform;
-        rectChu.anchorMin = Vector2.zero;
-        rectChu.anchorMax = Vector2.one;
-        rectChu.offsetMin = new Vector2(45f, 45f);
-        rectChu.offsetMax = new Vector2(-45f, -45f);
-
-        bangKetThuc.SetActive(false);
-    }
-
-    private void TaoLuoiBongBanDau()
-    {
-        for (int hang = 0; hang < soHangBanDau; hang++)
-        {
-            for (int cot = 0; cot < soCot; cot++)
-            {
-                int maMau = Random.Range(0, bangMauBong.Length);
-                Vector3 viTri = LayViTriO(hang, cot);
-                Bong bong = TaoBong("Bóng trong lưới", maMau, viTri, true);
-                bong.Hang = hang;
-                bong.Cot = cot;
-                luoiBong[hang, cot] = bong;
-            }
-        }
-    }
-
-    private void TaoBongMoiDeBan()
-    {
-        if (bongTiepTheo == null)
-        {
-            bongTiepTheo = TaoBong("Bóng tiếp theo", Random.Range(0, bangMauBong.Length), new Vector3(2.05f, viTriSung.y + 0.15f, 0f), false);
-            bongTiepTheo.transform.localScale = Vector3.one * banKinhBong * 1.55f;
-        }
-
-        int mauMoi = bongTiepTheo.MaMau;
-        Destroy(bongTiepTheo.gameObject);
-        bongTiepTheo = TaoBong("Bóng tiếp theo", Random.Range(0, bangMauBong.Length), new Vector3(2.05f, viTriSung.y + 0.15f, 0f), false);
-        bongTiepTheo.transform.localScale = Vector3.one * banKinhBong * 1.55f;
-
-        bongDangBan = TaoBong("Bóng đang bắn", mauMoi, new Vector3(viTriSung.x, viTriSung.y, 0f), false);
-        dangBay = false;
-    }
-
-    private Bong TaoBong(string ten, int maMau, Vector3 viTri, bool namTrongLuoi)
-    {
-        GameObject obj = TaoBongDoHoa(ten, viTri, bangMauBong[maMau], banKinhBong * 2f);
-        Bong bong = obj.AddComponent<Bong>();
-        bong.MaMau = maMau;
-        bong.Hang = KhongCoBong;
-        bong.Cot = KhongCoBong;
-        SpriteRenderer ve = obj.GetComponent<SpriteRenderer>();
-        ve.sprite = spriteBong[maMau];
-        ve.sortingOrder = namTrongLuoi ? 1 : 10;
-        return bong;
-    }
-
-    private GameObject TaoBongDoHoa(string ten, Vector3 viTri, Color mau, float duongKinh)
-    {
-        GameObject obj = new GameObject(ten);
-        obj.transform.position = viTri;
-        obj.transform.localScale = Vector3.one * duongKinh;
-        SpriteRenderer ve = obj.AddComponent<SpriteRenderer>();
-        ve.sprite = TaoSpriteTron(mau);
-        ve.sortingOrder = 1;
-        CircleCollider2D vaCham = obj.AddComponent<CircleCollider2D>();
-        vaCham.radius = 0.5f;
-        return obj;
-    }
-
-    private void CapNhatDieuKhien()
-    {
-        if (bongDangBan == null || dangBay)
+        if (daKetThuc || quanLyBongBan == null || quanLyLuoiBong == null)
             return;
 
-        Vector3 diemManHinh;
-        bool coDauVao = LayViTriDauVao(out diemManHinh);
-        if (coDauVao)
+        Bong bong = quanLyBongBan.BongDangBan;
+        bool thanhCong = quanLyLuoiBong.GanBongVaoLuoi(bong, viTriCham, out int diemCong, out bool daThang, out bool daThua, out string lyDoLoi);
+
+        quanLyBongBan.MatQuyenQuanLyBongDangBan();
+        soBongDaBan++;
+
+        // SỬA Ở ĐÂY nếu muốn thay đổi cách cộng tổng điểm.
+        // Hiện tại: tổng điểm = điểm cũ + điểm vừa nhận.
+        // Ví dụ muốn nhân đôi mọi điểm nhận được: đổi thành diem += diemCong * 2;
+        // Điểm mỗi bóng nổ/rơi được tính trong QuanLyLuoiBong.cs.
+        diem += diemCong;
+        CapNhatUI();
+
+        if (!thanhCong && daThua)
         {
-            Vector3 diemTheGioi = cameraChinh.ScreenToWorldPoint(diemManHinh);
-            diemTheGioi.z = 0f;
-            Vector2 huong = ((Vector2)diemTheGioi - viTriSung).normalized;
-            if (huong.y > 0.2f)
-            {
-                huongBan = huong;
-            }
+            KetThucTroChoi(false);
+            return;
         }
 
-        Vector3 dau = new Vector3(viTriSung.x, viTriSung.y, 0f);
-        Vector3 cuoi = dau + (Vector3)(huongBan * 2.0f);
-        thanSung.SetPosition(0, dau);
-        thanSung.SetPosition(1, dau + (Vector3)(huongBan * 0.75f));
-        duongNgam.SetPosition(0, dau + (Vector3)(huongBan * 0.75f));
-        duongNgam.SetPosition(1, cuoi);
-
-        if (CoBamBan())
+        if (!thanhCong)
         {
-            BanBong();
+            Debug.LogWarning(lyDoLoi);
+            KetThucTroChoi(false);
+            return;
         }
+
+        if (daThua)
+        {
+            KetThucTroChoi(false);
+            return;
+        }
+
+        if (daThang)
+        {
+            KetThucTroChoi(true);
+            return;
+        }
+
+        quanLyBongBan.TaoBongMoiSauLanBan();
+        dieuKhienSung.DatTrangThaiSanSang();
     }
 
-    private bool LayViTriDauVao(out Vector3 viTriManHinh)
+    private void KetThucTroChoi(bool thang)
     {
-        viTriManHinh = Vector3.zero;
+        daKetThuc = true;
 
-        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
-        {
-            Vector2 viTriCham = Touchscreen.current.primaryTouch.position.ReadValue();
-            viTriManHinh = new Vector3(viTriCham.x, viTriCham.y, 0f);
-            return true;
-        }
+        if (dieuKhienSung != null)
+            dieuKhienSung.DungBan();
 
-        if (Mouse.current != null)
-        {
-            Vector2 viTriChuot = Mouse.current.position.ReadValue();
-            viTriManHinh = new Vector3(viTriChuot.x, viTriChuot.y, 0f);
-            return true;
-        }
+        if (quanLyGiaoDien == null)
+            return;
 
-        return false;
+        if (thang)
+            quanLyGiaoDien.HienBangThang(diem);
+        else
+            quanLyGiaoDien.HienBangThua(diem);
+    }
+
+    private void CapNhatUI()
+    {
+        if (quanLyGiaoDien == null)
+            return;
+
+        quanLyGiaoDien.CapNhatDiem(diem);
+        quanLyGiaoDien.CapNhatCapDo(capDo);
+        quanLyGiaoDien.CapNhatSoBong(soBongDaBan);
+        // SỬA Ở ĐÂY nếu muốn đổi câu hướng dẫn trên màn hình.
+        quanLyGiaoDien.CapNhatGioiHan("Kéo để ngắm - thả/click/Space để bắn");
     }
 
     private bool CoBamChoiLai()
     {
+        // SỬA Ở ĐÂY nếu muốn đổi phím chơi lại.
+        // Hiện tại dùng phím R. Muốn dùng Space thì đổi rKey thành spaceKey.
         if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
             return true;
 
+        // Dòng này cho phép bấm chuột để chơi lại sau khi thua/thắng.
+        // Nếu không muốn click chuột chơi lại thì xóa hoặc comment khối if này.
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             return true;
 
+        // Dòng này cho phép chạm màn hình để chơi lại trên điện thoại.
+        // Nếu không muốn cảm ứng chơi lại thì xóa hoặc comment khối if này.
         if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
             return true;
 
         return false;
     }
 
-    private bool CoBamBan()
+    public void ChoiLai()
     {
-        if (Mouse.current != null && (Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.leftButton.wasReleasedThisFrame))
-            return true;
-
-        if (Touchscreen.current != null && (Touchscreen.current.primaryTouch.press.wasPressedThisFrame || Touchscreen.current.primaryTouch.press.wasReleasedThisFrame))
-            return true;
-
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
-            return true;
-
-        return false;
-    }
-
-    private void BanBong()
-    {
-        if (bongDangBan == null || dangBay)
+        if (!Application.isPlaying)
             return;
 
-        dangBay = true;
-        bongDangBan.HuongBay = huongBan.normalized;
-        bongDangBan.gameObject.name = "Bóng đang bay";
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-
-    private void CapNhatBongDangBay()
-    {
-        if (!dangBay || bongDangBan == null)
-            return;
-
-        Vector3 viTri = bongDangBan.transform.position;
-        Vector2 huong = bongDangBan.HuongBay;
-        viTri += (Vector3)(huong * tocDoBan * Time.deltaTime);
-
-        if (viTri.x <= gioiHanTrai + banKinhBong)
-        {
-            viTri.x = gioiHanTrai + banKinhBong;
-            huong.x = Mathf.Abs(huong.x);
-        }
-        else if (viTri.x >= gioiHanPhai - banKinhBong)
-        {
-            viTri.x = gioiHanPhai - banKinhBong;
-            huong.x = -Mathf.Abs(huong.x);
-        }
-
-        bongDangBan.transform.position = viTri;
-        bongDangBan.HuongBay = huong.normalized;
-
-        if (viTri.y >= viTriDinhLuoi + banKinhBong * 0.25f || ChamVaoBongTrongLuoi(viTri))
-        {
-            GanBongVaoLuoi(viTri);
-        }
-    }
-
-    private bool ChamVaoBongTrongLuoi(Vector3 viTri)
-    {
-        float khoangCham = banKinhBong * 1.75f;
-        for (int h = 0; h < soHang; h++)
-        {
-            for (int c = 0; c < soCot; c++)
-            {
-                Bong bong = luoiBong[h, c];
-                if (bong == null)
-                    continue;
-
-                if (Vector2.Distance(viTri, bong.transform.position) <= khoangCham)
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    private void GanBongVaoLuoi(Vector3 viTri)
-    {
-        Vector2Int oGanNhat = TimOTrongGanNhat(viTri);
-        if (oGanNhat.x < 0)
-        {
-            KetThucTroChoi("HẾT CHỖ BẮN!");
-            return;
-        }
-
-        int hang = oGanNhat.x;
-        int cot = oGanNhat.y;
-        bongDangBan.Hang = hang;
-        bongDangBan.Cot = cot;
-        bongDangBan.transform.position = LayViTriO(hang, cot);
-        bongDangBan.GetComponent<SpriteRenderer>().sortingOrder = 1;
-        luoiBong[hang, cot] = bongDangBan;
-
-        List<Vector2Int> cum = TimCumCungMau(hang, cot, bongDangBan.MaMau);
-        if (cum.Count >= 3)
-        {
-            XoaCumBong(cum, 10);
-            XoaBongRoiTuDo();
-        }
-
-        bongDangBan = null;
-        dangBay = false;
-
-        if (KiemTraThua())
-        {
-            KetThucTroChoi("GAME OVER");
-            return;
-        }
-
-        if (DemSoBongConLai() == 0)
-        {
-            KetThucTroChoi("BẠN ĐÃ THẮNG!");
-            return;
-        }
-
-        TaoBongMoiDeBan();
-    }
-
-    private Vector2Int TimOTrongGanNhat(Vector3 viTri)
-    {
-        float khoangGanNhat = float.MaxValue;
-        Vector2Int oTotNhat = new Vector2Int(-1, -1);
-
-        for (int h = 0; h < soHang; h++)
-        {
-            for (int c = 0; c < soCot; c++)
-            {
-                if (luoiBong[h, c] != null)
-                    continue;
-
-                Vector3 viTriO = LayViTriO(h, c);
-                float khoang = Vector2.Distance(viTri, viTriO);
-                if (khoang < khoangGanNhat)
-                {
-                    khoangGanNhat = khoang;
-                    oTotNhat = new Vector2Int(h, c);
-                }
-            }
-        }
-
-        return oTotNhat;
-    }
-
-    private Vector3 LayViTriO(int hang, int cot)
-    {
-        float khoangCach = banKinhBong * 2.05f;
-        float khoangDoc = khoangCach * 0.86f;
-        float batDauX = -((soCot - 1) * khoangCach) / 2f;
-        float leHang = (hang % 2 == 0) ? 0f : khoangCach * 0.5f;
-        float x = batDauX + cot * khoangCach + leHang;
-        float y = viTriDinhLuoi - hang * khoangDoc;
-        return new Vector3(x, y, 0f);
-    }
-
-    private List<Vector2Int> TimCumCungMau(int hangBatDau, int cotBatDau, int maMau)
-    {
-        List<Vector2Int> ketQua = new List<Vector2Int>();
-        bool[,] daTham = new bool[soHang, soCot];
-        Queue<Vector2Int> hangDoi = new Queue<Vector2Int>();
-        hangDoi.Enqueue(new Vector2Int(hangBatDau, cotBatDau));
-        daTham[hangBatDau, cotBatDau] = true;
-
-        while (hangDoi.Count > 0)
-        {
-            Vector2Int o = hangDoi.Dequeue();
-            Bong bong = luoiBong[o.x, o.y];
-            if (bong == null || bong.MaMau != maMau)
-                continue;
-
-            ketQua.Add(o);
-            foreach (Vector2Int keBen in LayCacOKeBen(o.x, o.y))
-            {
-                if (!HopLe(keBen.x, keBen.y) || daTham[keBen.x, keBen.y])
-                    continue;
-                daTham[keBen.x, keBen.y] = true;
-                hangDoi.Enqueue(keBen);
-            }
-        }
-
-        return ketQua;
-    }
-
-    private void XoaCumBong(List<Vector2Int> cum, int diemMoiBong)
-    {
-        foreach (Vector2Int o in cum)
-        {
-            Bong bong = luoiBong[o.x, o.y];
-            if (bong != null)
-                Destroy(bong.gameObject);
-            luoiBong[o.x, o.y] = null;
-            diem += diemMoiBong;
-        }
-        CapNhatDiem();
-    }
-
-    private void XoaBongRoiTuDo()
-    {
-        bool[,] duocTreo = new bool[soHang, soCot];
-        Queue<Vector2Int> hangDoi = new Queue<Vector2Int>();
-
-        for (int c = 0; c < soCot; c++)
-        {
-            if (luoiBong[0, c] != null)
-            {
-                duocTreo[0, c] = true;
-                hangDoi.Enqueue(new Vector2Int(0, c));
-            }
-        }
-
-        while (hangDoi.Count > 0)
-        {
-            Vector2Int o = hangDoi.Dequeue();
-            foreach (Vector2Int keBen in LayCacOKeBen(o.x, o.y))
-            {
-                if (!HopLe(keBen.x, keBen.y) || duocTreo[keBen.x, keBen.y] || luoiBong[keBen.x, keBen.y] == null)
-                    continue;
-
-                duocTreo[keBen.x, keBen.y] = true;
-                hangDoi.Enqueue(keBen);
-            }
-        }
-
-        List<Vector2Int> roi = new List<Vector2Int>();
-        for (int h = 0; h < soHang; h++)
-        {
-            for (int c = 0; c < soCot; c++)
-            {
-                if (luoiBong[h, c] != null && !duocTreo[h, c])
-                    roi.Add(new Vector2Int(h, c));
-            }
-        }
-
-        XoaCumBong(roi, 5);
-    }
-
-    private List<Vector2Int> LayCacOKeBen(int hang, int cot)
-    {
-        bool hangLe = hang % 2 == 1;
-        int[,] buocChan = { { 0, -1 }, { 0, 1 }, { -1, -1 }, { -1, 0 }, { 1, -1 }, { 1, 0 } };
-        int[,] buocLe = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { -1, 1 }, { 1, 0 }, { 1, 1 } };
-        int[,] buoc = hangLe ? buocLe : buocChan;
-
-        List<Vector2Int> ketQua = new List<Vector2Int>();
-        for (int i = 0; i < 6; i++)
-        {
-            ketQua.Add(new Vector2Int(hang + buoc[i, 0], cot + buoc[i, 1]));
-        }
-        return ketQua;
-    }
-
-    private bool HopLe(int hang, int cot)
-    {
-        return hang >= 0 && hang < soHang && cot >= 0 && cot < soCot;
-    }
-
-    private bool KiemTraThua()
-    {
-        for (int h = soHang - 2; h < soHang; h++)
-        {
-            for (int c = 0; c < soCot; c++)
-            {
-                if (luoiBong[h, c] != null)
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    private int DemSoBongConLai()
-    {
-        int dem = 0;
-        for (int h = 0; h < soHang; h++)
-        {
-            for (int c = 0; c < soCot; c++)
-            {
-                if (luoiBong[h, c] != null)
-                    dem++;
-            }
-        }
-        return dem;
-    }
-
-    private void KetThucTroChoi(string tieuDe)
-    {
-        daKetThuc = true;
-        dangBay = false;
-        bangKetThuc.SetActive(true);
-        chuKetThuc.text = tieuDe + "\n\nĐIỂM: " + diem + "\n\nNhấn R hoặc chạm để chơi lại";
-    }
-
-    private void ChoiLai()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
-    }
-
-    private void CapNhatDiem()
-    {
-        if (chuDiem != null)
-            chuDiem.text = "ĐIỂM: " + diem;
-    }
-
-    private Sprite[] TaoTatCaSpriteBong()
-    {
-        // Nếu có ảnh trong Assets/Resources/AnhBong thì game sẽ dùng ảnh đó.
-        // Nếu thiếu ảnh, game tự tạo bóng tròn đơn giản để vẫn chạy được.
-        Sprite[] anhCoSan = Resources.LoadAll<Sprite>("AnhBong");
-        Sprite[] sprites = new Sprite[bangMauBong.Length];
-
-        for (int i = 0; i < sprites.Length; i++)
-        {
-            if (anhCoSan != null && i < anhCoSan.Length && anhCoSan[i] != null)
-                sprites[i] = anhCoSan[i];
-            else
-                sprites[i] = TaoSpriteTron(bangMauBong[i]);
-        }
-
-        return sprites;
-    }
-
-    private Sprite TaoSpriteTron(Color mau)
-    {
-        int kichThuoc = 128;
-        Texture2D tex = new Texture2D(kichThuoc, kichThuoc, TextureFormat.RGBA32, false);
-        tex.filterMode = FilterMode.Bilinear;
-        Vector2 tam = new Vector2(kichThuoc / 2f, kichThuoc / 2f);
-        float banKinh = kichThuoc * 0.46f;
-
-        for (int y = 0; y < kichThuoc; y++)
-        {
-            for (int x = 0; x < kichThuoc; x++)
-            {
-                float khoang = Vector2.Distance(new Vector2(x, y), tam);
-                if (khoang > banKinh)
-                {
-                    tex.SetPixel(x, y, Color.clear);
-                    continue;
-                }
-
-                float tiLe = khoang / banKinh;
-                Color mauDiem = Color.Lerp(Color.white, mau, Mathf.Clamp01(tiLe * 0.85f));
-                if (tiLe > 0.86f)
-                    mauDiem = Color.Lerp(mauDiem, Color.black, 0.18f);
-                tex.SetPixel(x, y, mauDiem);
-            }
-        }
-
-        // Vệt sáng nhỏ ở góc trên trái giúp bóng giống kiểu cổ điển hơn.
-        Vector2 diemSang = new Vector2(kichThuoc * 0.33f, kichThuoc * 0.68f);
-        for (int y = 0; y < kichThuoc; y++)
-        {
-            for (int x = 0; x < kichThuoc; x++)
-            {
-                float khoang = Vector2.Distance(new Vector2(x, y), diemSang);
-                if (khoang < kichThuoc * 0.12f)
-                {
-                    Color cu = tex.GetPixel(x, y);
-                    if (cu.a > 0f)
-                        tex.SetPixel(x, y, Color.Lerp(cu, Color.white, 0.55f));
-                }
-            }
-        }
-
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, kichThuoc, kichThuoc), new Vector2(0.5f, 0.5f), kichThuoc);
-    }
-
-    private Sprite TaoSpriteHinhVuong()
-    {
-        Texture2D tex = new Texture2D(8, 8, TextureFormat.RGBA32, false);
-        for (int y = 0; y < 8; y++)
-        {
-            for (int x = 0; x < 8; x++)
-                tex.SetPixel(x, y, Color.white);
-        }
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0.5f), 8);
-    }
-}
-
-public class Bong : MonoBehaviour
-{
-    public int Hang;
-    public int Cot;
-    public int MaMau;
-    public Vector2 HuongBay;
 }

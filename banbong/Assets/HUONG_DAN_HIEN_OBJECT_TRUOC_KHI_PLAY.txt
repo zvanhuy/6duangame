@@ -1,0 +1,18 @@
+BẢN ĐÃ SỬA: HIỆN OBJECT TRONG HIERARCHY KHI CHƯA BẤM PLAY
+
+1. Mở Unity project.
+2. Mở scene Assets/Scenes/BanBong.unity.
+3. Chọn object "Trình quản lý trò chơi".
+4. Trong Inspector, script QuanLyTroChoiBanBong có mục:
+   - Hiện Tất Cả Object Ngay Khi Chưa Play: bật sẵn.
+   - Tự Động Cập Nhật Khi Sửa Thông Số: bật sẵn.
+5. Khi chưa bấm Play, Hierarchy sẽ hiện sẵn:
+   - 01_Nền trang trí
+   - 02_Lưới bóng
+   - 03_Súng và bóng bắn
+   - 04_Giao diện UI
+6. Sau khi Unity tự hiện object, bấm Ctrl + S để lưu Scene.
+
+Lưu ý:
+- Nếu đổi So Hang, So Cot, So Hang Ban Dau trong Inspector, Unity sẽ tự cập nhật lại phần hiển thị.
+- Các object bóng trong lưới được đặt tên theo Hàng/Cột để dễ tìm, ví dụ: Bóng trong lưới H01 C01.
