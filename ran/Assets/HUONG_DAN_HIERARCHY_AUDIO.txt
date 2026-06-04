@@ -1,0 +1,26 @@
+HUONG DAN HIERARCHY VA AM THANH - GAME RAN
+
+1. Hierarchy da duoc tach thanh cac nhom:
+- 00_CAMERA: chua Camera Chinh.
+- 01_BOARD_NEN_TUONG: chua nen ban choi, vung choi va 4 buc tuong.
+- 02_SNAKE_RAN: khi Play se chua Dau ran va Than ran.
+- 03_FOOD_MOI: khi Play se chua Moi.
+- 04_UI_GIAO_DIEN: khi Play se chua Canvas, man hinh bat dau, man hinh ket thuc va diem.
+- 05_AUDIO: chua AudioSource dung de phat am thanh.
+- 99_GAME_MANAGER: chua object Trinh quan ly tro choi ran va script QuanLyTroChoiRan.cs.
+
+2. File am thanh da them:
+- Assets/Resources/Audio/an_moi.wav: phat khi ran an moi.
+- Assets/Resources/Audio/chet.wav: phat khi ran chet do cham tuong hoac can than.
+
+3. Cho code da sua trong QuanLyTroChoiRan.cs:
+- Resources.Load<AudioClip>("Audio/an_moi")
+- Resources.Load<AudioClip>("Audio/chet")
+- PhatAmThanh(amAnMoi, amLuongAnMoi) khi an moi.
+- PhatAmThanh(amChet, amLuongChet) khi game over.
+
+4. Neu muon thay am thanh:
+- Giu dung ten file an_moi.wav va chet.wav.
+- Dat file moi vao Assets/Resources/Audio/.
+- Xoa file cu hoac ghi de file cu.
+- Mo lai Unity de import lai am thanh.

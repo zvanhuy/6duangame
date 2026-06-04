@@ -1,0 +1,38 @@
+BẢN ĐÃ THÊM PAUSE VÀ TÁCH SCRIPT
+
+1. Nút PAUSE
+- Khi vào màn chơi, nút PAUSE nằm ở góc trên bên phải.
+- Bấm PAUSE để tạm dừng game.
+- Khi tạm dừng, rắn sẽ đứng yên vì Time.timeScale = 0.
+- Bấm TIẾP TỤC hoặc nhấn phím P / ESC để chơi tiếp.
+
+2. Các file script đã tách
+- QuanLyTroChoiRan.cs
+  Script chính, quản lý vòng đời game: bắt đầu, chơi lại, pause, game over, điểm, tăng tốc, tăng mồi.
+
+- SnakeHierarchy.cs
+  Tạo và sắp xếp các nhóm trong Hierarchy:
+  00_CAMERA, 01_BOARD_NEN_TUONG, 02_SNAKE_RAN, 03_FOOD_MOI, 04_UI_GIAO_DIEN, 05_AUDIO, 99_GAME_MANAGER.
+
+- SnakeUIController.cs
+  Quản lý giao diện: màn hình đầu Snake, nút BẮT ĐẦU, bảng điểm, nút PAUSE, màn hình tạm dừng, màn hình game over.
+
+- SnakeBoardRenderer.cs
+  Vẽ nền, tường, đầu rắn, thân rắn, mồi.
+
+- SnakeInputReader.cs
+  Nhận điều khiển bàn phím, vuốt màn hình, phím pause, phím chơi lại.
+
+- SnakeAssets.cs
+  Load ảnh rắn, mồi và âm thanh từ thư mục Resources.
+
+- SnakeAudioPlayer.cs
+  Phát âm thanh ăn mồi và âm thanh chết.
+
+3. Chỉnh tốc độ và số mồi
+Mở object Trình quản lý trò chơi rắn trong Hierarchy, chỉnh trong Inspector:
+- Thoi Gian Moi Buoc: số càng nhỏ rắn càng nhanh.
+- Thoi Gian Buoc Nhanh Nhat: giới hạn tốc độ nhanh nhất.
+- Moi Bao Nhieu Diem Tang Toc: bao nhiêu điểm thì tăng tốc.
+- Moi Bao Nhieu Diem Tang Moi: bao nhiêu điểm thì tăng thêm mồi.
+- So Moi Toi Da: số mồi tối đa trên màn chơi.

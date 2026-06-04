@@ -1,0 +1,33 @@
+BẢN ĐÃ CHUYỂN UI SANG HIERARCHY
+
+1. Vị trí UI để sửa trực tiếp:
+   04_UI_GIAO_DIEN
+   ├── EventSystem
+   └── Giao diện người chơi
+       ├── Bảng điểm trong màn chơi
+       ├── Nút Pause góc trên
+       ├── Màn hình bắt đầu
+       │   ├── Tên game
+       │   └── Nút bắt đầu
+       ├── Màn hình kết thúc
+       │   ├── Chữ kết thúc
+       │   └── Nút chơi lại
+       └── Màn hình tạm dừng
+           ├── Chữ tạm dừng
+           └── Nút tiếp tục
+
+2. Muốn sửa chữ, màu, vị trí, kích thước:
+   - Bấm vào object UI trong Hierarchy.
+   - Sửa Text / Image / RectTransform trong Inspector.
+   - Không cần sửa code để đổi màu, đổi chữ, kéo vị trí nút.
+
+3. Script UI:
+   Assets/Scripts/SnakeUIController.cs
+
+4. Script game chính:
+   Assets/Scripts/QuanLyTroChoiRan.cs
+
+5. Lưu ý:
+   - Không xóa object Giao diện người chơi vì nó gắn SnakeUIController.
+   - Không đổi tên các object UI nếu chưa sửa lại trong SnakeUIController.
+   - Nếu lỡ mất liên kết, kéo lại object vào các ô của SnakeUIController trong Inspector.

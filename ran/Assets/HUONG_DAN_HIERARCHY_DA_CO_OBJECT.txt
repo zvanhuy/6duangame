@@ -1,0 +1,56 @@
+BẢN SỬA HIERARCHY KHÔNG CÒN TRỐNG
+
+1. Mở scene:
+   Assets/Scenes/ran.unity
+
+2. Mở các mũi tên trong Hierarchy:
+   01_BOARD_NEN_TUONG
+   02_SNAKE_RAN
+   03_FOOD_MOI
+   04_UI_GIAO_DIEN
+   05_AUDIO
+
+3. Ý nghĩa từng nhóm:
+
+01_BOARD_NEN_TUONG
+- MAU_DE_SUA_NEN_TUONG:
+  + Mẫu nền lớn - sửa màu nền ở đây
+  + Mẫu vùng chơi - sửa màu vùng chơi
+  + Mẫu tường trên / dưới / trái / phải
+- DOI_TUONG_SINH_KHI_CHOI:
+  + Khi bấm Play, nền và tường thật sẽ sinh vào đây.
+
+02_SNAKE_RAN
+- MAU_DE_SUA_RAN:
+  + Mẫu đầu rắn - sửa màu/sprite ở đây
+  + Mẫu thân rắn - sửa màu/sprite ở đây
+- CAC_DOT_RAN_SINH_KHI_CHOI:
+  + Khi bấm Play, các đốt rắn thật sẽ sinh vào đây.
+
+03_FOOD_MOI
+- MAU_DE_SUA_MOI:
+  + Mẫu mồi - sửa màu/sprite ở đây
+- CAC_MOI_SINH_KHI_CHOI:
+  + Khi bấm Play, mồi thật sẽ sinh vào đây.
+
+04_UI_GIAO_DIEN
+- Giao diện người chơi:
+  + Bảng điểm trong màn chơi
+  + Nút Pause góc trên
+  + Màn hình bắt đầu
+  + Màn hình kết thúc
+  + Màn hình tạm dừng
+
+05_AUDIO
+- Nguồn phát âm thanh
+- Audio ăn mồi - an_moi.wav
+- Audio chết - chet.wav
+
+4. Nếu mở Unity mà nhóm vẫn chưa hiện đủ:
+   Trên thanh menu Unity bấm:
+   Snake > Sửa lại Hierarchy đầy đủ để dễ chỉnh
+
+5. Lưu ý:
+- Không sửa/xóa các nhóm có chữ SINH_KHI_CHOI nếu không cần.
+- Muốn sửa giao diện: mở 04_UI_GIAO_DIEN/Giao diện người chơi.
+- Muốn sửa màu rắn/mồi/nền: mở các nhóm MAU_DE_SUA_*.

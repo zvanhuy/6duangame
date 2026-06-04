@@ -1,0 +1,30 @@
+BẢN SỬA UI + ĐIỂM CAO + TĂNG TỐC + TĂNG MỒI
+
+1. Màn hình đầu game
+- Chỉ còn chữ: Snake
+- Bên dưới là nút: BẮT ĐẦU
+- Không còn chữ hướng dẫn dài.
+- Game chỉ bắt đầu khi bấm đúng nút BẮT ĐẦU.
+
+2. Trong màn chơi
+- Hiển thị điểm hiện tại.
+- Hiển thị điểm cao nhất đã lưu bằng PlayerPrefs.
+- Hiển thị tốc độ hiện tại.
+- Hiển thị số mồi hiện tại.
+
+3. Cơ chế tăng theo điểm
+- Mỗi lần ăn mồi: +10 điểm.
+- Mỗi 50 điểm: tốc độ rắn tăng lên.
+- Mỗi 60 điểm: số lượng mồi trên bàn tăng thêm 1.
+- Số mồi tối đa mặc định: 5.
+
+4. File code chính đã sửa
+Assets/Scripts/QuanLyTroChoiRan.cs
+
+5. Nếu muốn chỉnh độ khó trong Inspector
+- thoiGianMoiBuoc: tốc độ ban đầu. Số càng nhỏ rắn càng nhanh.
+- thoiGianBuocNhanhNhat: tốc độ nhanh nhất được phép.
+- diemMoiLanAn: điểm nhận được khi ăn 1 mồi.
+- moiBaoNhieuDiemTangToc: bao nhiêu điểm thì tăng tốc.
+- moiBaoNhieuDiemTangMoi: bao nhiêu điểm thì tăng thêm mồi.
+- soMoiToiDa: số mồi tối đa trên màn chơi.
